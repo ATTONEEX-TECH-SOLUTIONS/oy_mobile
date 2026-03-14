@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   StatusBar,
   StyleSheet,
   Text,
@@ -87,22 +88,38 @@ function RestaurantHero({ restaurant, onBack, cartCount, onCart }) {
 
 // ── Menu item card ────────────────────────────────────────────────────────────
 function MenuCard({ item, onAdd }) {
+  const imageUrl = item.imageUrl;
+
   return (
     <View style={styles.menuCard}>
-      {/* Initials thumbnail */}
-      <View style={styles.menuThumb}>
-        <Text style={styles.menuThumbText}>
-          {(item.name || "?")[0].toUpperCase()}
-        </Text>
-      </View>
+      {imageUrl ? (
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.menuImage}
+          resizeMode="cover"
+        />
+      ) : (
+        <View style={styles.menuThumb}>
+          <Text style={styles.menuThumbText}>
+            {(item.name || "?")[0].toUpperCase()}
+          </Text>
+        </View>
+      )}
 
       <View style={styles.menuCardBody}>
-        <Text style={styles.menuItemName} numberOfLines={1}>{item.name}</Text>
+        <Text style={styles.menuItemName} numberOfLines={1}>
+          {item.name}
+        </Text>
+
         {!!item.description && (
-          <Text style={styles.menuItemDesc} numberOfLines={2}>{item.description}</Text>
+          <Text style={styles.menuItemDesc} numberOfLines={2}>
+            {item.description}
+          </Text>
         )}
+
         <Text style={styles.menuItemPrice}>
-          {"\u20A6"}{Number(item.price).toLocaleString("en-NG")}
+          {"\u20A6"}
+          {Number(item.price).toLocaleString("en-NG")}
         </Text>
       </View>
 
@@ -112,7 +129,6 @@ function MenuCard({ item, onAdd }) {
     </View>
   );
 }
-
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function RestaurantDetail() {
   const { businessId } = useLocalSearchParams();
@@ -129,22 +145,22 @@ export default function RestaurantDetail() {
     [cartItems],
   );
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      setError("");
-      try {
-        const res = await publicApi.getRestaurantMenu(businessId);
-        setRestaurant(res?.data?.restaurant || null);
-        setMenu(res?.data?.menu || []);
-      } catch (e) {
-        setError(e.message || "Failed to load menu");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [businessId]);
-
+useEffect(() => {
+  (async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await publicApi.getRestaurantMenu(businessId);
+      console.log("restaurant menu response:", JSON.stringify(res, null, 2));
+      setRestaurant(res?.data?.restaurant || null);
+      setMenu(res?.data?.menu || []);
+    } catch (e) {
+      setError(e.message || "Failed to load menu");
+    } finally {
+      setLoading(false);
+    }
+  })();
+}, [businessId]);
   const addItem = (item) => {
     const currentBiz = cartItems[0]?.businessId;
     if (currentBiz && currentBiz !== Number(businessId)) {
@@ -349,6 +365,13 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     flexShrink: 0,
   },
+  menuImage: {
+  width: 52,
+  height: 52,
+  borderRadius: 12,
+  backgroundColor: C.border,
+  flexShrink: 0,
+},
   menuThumbText: { color: C.white, fontSize: 20, fontWeight: "900" },
   menuCardBody: { flex: 1 },
   menuItemName: { fontSize: 14, fontWeight: "700", color: C.textDark, marginBottom: 2 },
